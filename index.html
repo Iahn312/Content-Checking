@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vinatorch Content Checking</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+
+    .title{
+      color: #007BFF;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .word-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .add-word-btn {
+      margin-bottom: 20px;
+    }
+
+    .word-tag {
+      background-color: #007BFF;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .word-tag button {
+      padding: 5px 5px;
+      margin: 0 0 0 5px;
+      background: transparent;
+      border: none;
+      color: white;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+
+    .highlight {
+      background-color: yellow;
+      font-weight: bold;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 5px;
+      cursor: pointer;
+      border: none;
+      background-color: #28a745;
+      color: white;
+      border-radius: 5px;
+    }
+
+    #result {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="title">Vinatorch Content Checking</h2>
+
+    <!-- Word input -->
+    <label>Enter restricted keywords to check (separated by commas):</label>
+    <input type="text" id="wordInput" placeholder="e.g. cat, dog, New York" />
+    <button class="add-word-btn" onclick="addWord()">Add Word(s)</button>
+
+    <!-- Word list -->
+    <div class="word-list" id="wordList"></div>
+
+    <!-- Paragraph input -->
+    <label>Enter paragraph to check:</label>
+    <textarea id="paragraphInput" rows="6" placeholder="Type paragraph here..."></textarea>
+    <button onclick="highlightWords()">Check Paragraph</button>
+
+    <!-- Result -->
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const words = [];
+
+    function saveWordsToLocal() {
+      localStorage.setItem('highlightWords', JSON.stringify(words));
+    }
+
+    function loadWordsFromLocal() {
+      const saved = localStorage.getItem('highlightWords');
+      if (saved) {
+        const loadedWords = JSON.parse(saved);
+        if (Array.isArray(loadedWords)) {
+          words.push(...loadedWords);
+          renderWords();
+        }
+      }
+    }
+
+    function addWord() {
+      const wordInput = document.getElementById('wordInput');
+      const input = wordInput.value.trim();
+
+      // Split by commas only to allow phrases with spaces
+      const newWords = input
+        .split(',')
+        .map(w => w.trim())
+        .filter(w => w.length > 0 && !words.includes(w.toLowerCase()));
+
+      words.push(...newWords.map(w => w.toLowerCase()));
+      renderWords();
+      saveWordsToLocal();
+
+      wordInput.value = '';
+    }
+
+    function removeWord(index) {
+      words.splice(index, 1);
+      renderWords();
+      saveWordsToLocal();
+    }
+
+    function renderWords() {
+      const wordList = document.getElementById('wordList');
+      wordList.innerHTML = '';
+
+      words.forEach((word, index) => {
+        const tag = document.createElement('div');
+        tag.className = 'word-tag';
+        tag.innerHTML = `${word} <button onclick="removeWord(${index})">x</button>`;
+        wordList.appendChild(tag);
+      });
+    }
+
+    function escapeRegExp(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function highlightWords() {
+      const paragraph = document.getElementById('paragraphInput').value;
+      if (!paragraph) return;
+
+      let resultHTML = paragraph;
+
+      words.forEach(word => {
+        const pattern = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'gi');
+        resultHTML = resultHTML.replace(pattern, match => `<span class="highlight">${match}</span>`);
+      });
+
+      document.getElementById('result').innerHTML = resultHTML;
+    }
+
+    // Load words from localStorage on page load
+    loadWordsFromLocal();
+  </script>
+</body>
+</html>
