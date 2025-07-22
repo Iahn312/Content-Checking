@@ -91,7 +91,8 @@
     <!-- Word input -->
     <label>Enter restricted keywords to check (separated by commas):</label>
     <input type="text" id="wordInput" placeholder="e.g. cat, dog, New York" />
-    <button class="add-word-btn" onclick="addWord()">Add Word(s)</button>
+    <button class="add-word-btn" onclick="addWord()">Add Keyword(s)</button>
+    <button onclick="clearAllWords()" style="background-color: #dc3545;">Clear All Keywords</button>
 
     <!-- Word list -->
     <div class="word-list" id="wordList"></div>
@@ -174,6 +175,12 @@
       });
 
       document.getElementById('result').innerHTML = resultHTML;
+    }
+
+    function clearAllWords() {
+      words.length = 0;
+      renderWords();
+      saveWordsToLocal();
     }
 
     // Load words from localStorage on page load
